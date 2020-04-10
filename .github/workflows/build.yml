@@ -9,7 +9,6 @@ on:
 env:
   FIRMWARE_URL: "https://downloads.openwrt.org/releases/19.07.2/targets/x86/64/openwrt-19.07.2-x86-64-generic-rootfs.tar.gz"
   TAG: 19.07.2
-  BUI
 jobs:
   build:
     name: "Build OpenWrt docker image"
