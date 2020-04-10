@@ -1,3 +1,4 @@
+![Build OpenWrt Docker x86-64 image](https://github.com/crazygit/openwrt-x86-64/workflows/Build%20OpenWrt%20Docker%20x86-64%20image/badge.svg?branch=master)
 # OpenWrt Docker镜像构建
 
 为了在Docker中运行OpenWrt系统，我们需要用到OpenWrt的docker镜像,网上有很多人分享已经制作好的镜像。但是，每个人都有自己不同的需求，自己学会制作镜像就显得特别重要了。
@@ -86,9 +87,9 @@ $ docker run --rm crazygit/openwrt-x86-64 cat /etc/banner
 
     ```yaml
     env:
-    FIRMWARE_URL: "https://downloads.openwrt.org/releases/19.07.2/targets/x86/64/openwrt-19.07.2-x86-64-generic-rootfs.tar.gz"
-    REPOSITORY: crazygit/openwrt-x86-64
-    TAG: 19.07.2
+      FIRMWARE_URL: "https://downloads.openwrt.org/releases/19.07.2/targets/x86/64/openwrt-19.07.2-x86-64-generic-rootfs.tar.gz"
+      REPOSITORY: crazygit/openwrt-x86-64
+      TAG: 19.07.2
     ```
 5. 提交修改之后，github action会自动编译镜像并将镜像push到你的docker hub账户中指定的仓库里
 
