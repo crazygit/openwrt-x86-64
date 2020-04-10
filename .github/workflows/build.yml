@@ -11,11 +11,14 @@ env:
   TAG: 19.07.2
 jobs:
   build:
+    name: "Build OpenWrt docker image"
     runs-on: ubuntu-latest
     steps:
       - name: Download Firmware
         run: |
           wget $FIRMWARE_URL -O openwrt.tar.gz
+          echo $pwd
+          ls
       - name: Publish to Registry
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
