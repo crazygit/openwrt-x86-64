@@ -58,7 +58,10 @@ $ docker run --rm crazygit/openwrt-x86-64 cat /etc/banner
 
 ### 构建自己的镜像
 
-1. 编译自己的固件(这个步骤比较多，网上相关介绍也比较多，在此不再展开描述)
+1. 编译自己的固件,可以参考：
+
+    https://github.com/crazygit/Actions-OpenWrt
+
 2. 下载本库
 
     ```bash
