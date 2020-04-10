@@ -9,6 +9,7 @@ on:
 env:
   FIRMWARE_URL: "https://downloads.openwrt.org/releases/19.07.2/targets/x86/64/openwrt-19.07.2-x86-64-generic-rootfs.tar.gz"
   TAG: 19.07.2
+  BUI
 jobs:
   build:
     name: "Build OpenWrt docker image"
@@ -20,17 +21,14 @@ jobs:
       - name: Download Firmware
         run: |
           wget $FIRMWARE_URL -O openwrt.tar.gz
-          echo "$(pwd)"
-          echo "$(ls)"
 
       - name: Publish to Registry
         uses: elgohr/Publish-Docker-Github-Action@master
+        env:
+          FIRST_ARG: FIRMWARE=openwrt.tar.gz
         with:
           name: crzygit/openwrt-x86-64
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
-          buildargs: FIRMWARE=openwrt.tar.gz
+          buildargs: FIRST_ARG
           tags: ${{ env.TAG }}
-
-      - name: SSH connection to Actions
-        uses: P3TERX/debugger-action@master
