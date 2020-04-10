@@ -1,15 +1,37 @@
-## OpenWrt Docker镜像构建
+# OpenWrt Docker镜像构建
 
 为了在Docker中运行OpenWrt系统，我们需要用到OpenWrt的docker镜像,网上有很多人分享已经制作好的镜像。但是，每个人都有自己不同的需求，自己学会制作镜像就显得特别重要了。
 
 
-其实使用OpenWrt的固件, 可以很方便的构建Docker镜像，这里的固件不光是官方固件之外，也可以是经过自己定制编译生成的固件。
+其实使用OpenWrt的固件, 可以很方便的构建Docker镜像，这里的固件不光是官方固件，也可以是经过自己定制编译生成的固件。
 
+## 直接使用
 
-### 构建官方镜像
+如果你只想下载并使用，不关心构建流程，那么你可以用下面的命令直接下载
 
-从[官网](https://downloads.openwrt.org/)下载自己需要的平台固件官方的固件，这里以`x86-64`平台为例
+```bash
+# 下载镜像
+$ docker pull crazygit/openwrt-x86-64
 
+# 查看镜像信息
+$ docker run --rm crazygit/openwrt-x86-64 cat /etc/banner
+  _______                     ________        __
+ |       |.-----.-----.-----.|  |  |  |.----.|  |_
+ |   -   ||  _  |  -__|     ||  |  |  ||   _||   _|
+ |_______||   __|_____|__|__||________||__|  |____|
+          |__| W I R E L E S S   F R E E D O M
+ -----------------------------------------------------
+ OpenWrt 19.07.2, r10947-65030d81f3
+ -----------------------------------------------------
+```
+
+## 手动构建
+
+如果你对自己构建感兴趣，可以继续看下去
+
+### 使用官方固件
+
+这里以`x86-64`平台为例
 
 #### 首先获取获取固件的下载地址
 
@@ -28,28 +50,47 @@
     ```bash
     $ git clone https://github.com/crazygit/openwrt-x86-64.git openwrt-x86-64
     $ cd openwrt-x86-64
-    # 参数1: 固件的下载地址
+    # 参数1: 第5步中获取的固件下载地址
     # 参数2: docker镜像的名字，可以随便指定: 如crazygit/openwrt-x86-64
-
     $ ./build.sh "https://downloads.openwrt.org/releases/19.07.2/targets/x86/64/openwrt-19.07.2-x86-64-generic-rootfs.tar.gz" crazygit/openwrt-x86-64
     ```
 
 ### 构建自己的镜像
 
-1. 下载本库的`Dockerfile`文件
+1. 编译自己的固件(这个步骤比较多，网上相关介绍也比较多，在此不再展开描述)
+2. 下载本库
 
     ```bash
     $ git clone https://github.com/crazygit/openwrt-x86-64.git openwrt-x86-64
     ```
-2. 编译自己的固件并拷贝到`Dockerfile`文件所在的目录,固件应该是`*.tar.gz`格式的
+3. 拷贝自己的固件到`Dockerfile`文件所在的目录,固件文件名后缀应该是`.tar.gz`的
 
     ```bash
     $ cd openwrt-x86-64
     $ cp /path/to/your/firmware.tar.gz openwrt.tar.gz
+    ```
 
+4. 编译镜像
+
+    ```bash
     # -t后面为镜像的名字，可以随便指定: 如: crazygit/openwrt-x86-64
     $ docker build . --build-arg FIRMWARE=openwrt.tar.gz -t crazygit/openwrt-x86-64
     ```
+
+## 使用Github Action自动构建
+
+1. Fork当前仓库
+2. 在项目`Settings->Secrets`里配置你的docker hub账户的用户名和密码`DOCKER_USERNAME`和`DOCKER_TOKEN`
+3. 在docker hub上创建你在一个仓库来存放编译的镜像
+4. 根据自己的情况修改`.github/workflows/build.yml`文件中的如下环境变量
+
+    ```yaml
+    env:
+    FIRMWARE_URL: "https://downloads.openwrt.org/releases/19.07.2/targets/x86/64/openwrt-19.07.2-x86-64-generic-rootfs.tar.gz"
+    REPOSITORY: crazygit/openwrt-x86-64
+    TAG: 19.07.2
+    ```
+5. 提交修改之后，github action会自动编译镜像并将镜像push到你的docker hub账户中指定的仓库里
 
 ### 验证镜像
 
@@ -82,8 +123,6 @@
 
 * [在Docker 中运行 OpenWrt 旁路网关](https://mlapp.cn/376.html)
 * [Docker上运行Lean大源码编译的OpenWRT](https://openwrt.club/93.html)
-
-
 
 
 ### 参考
