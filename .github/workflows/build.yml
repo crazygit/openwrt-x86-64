@@ -1,0 +1,26 @@
+name: Build OpenWrt Docker x86-64 Image
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - .github/workflows/build.yml
+env:
+  FIRMWARE_URL: "https://downloads.openwrt.org/releases/19.07.2/targets/x86/64/openwrt-19.07.2-x86-64-generic-rootfs.tar.gz"
+  TAG: 19.07.2
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Firmware
+        run: |
+          wget $FIRMWARE_URL -O openwrt.tar.gz
+      - name: Publish to Registry
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: crzygit/openwrt-x86-64
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          buildargs: FIRMWARE=openwrt.tar.gz
+          tags: ${{ env.TAG }}
