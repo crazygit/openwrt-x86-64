@@ -5,7 +5,7 @@ on:
     branches:
       - master
     paths:
-      - '.github/workflows/build.yml'
+      - ".github/workflows/build.yml"
 env:
   FIRMWARE_URL: "https://downloads.openwrt.org/releases/19.07.2/targets/x86/64/openwrt-19.07.2-x86-64-generic-rootfs.tar.gz"
   TAG: 19.07.2
@@ -23,5 +23,4 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
           buildargs: FIRMWARE=openwrt.tar.gz
-          tags:
-            - ${{ env.TAG }}
+          tags: ${{ env.TAG }}
