@@ -1,4 +1,4 @@
-name: Build OpenWrt Docker x86-64 Image
+name: Build OpenWrt Docker x86-64 image
 
 on:
   push:
@@ -21,6 +21,7 @@ jobs:
         with:
           name: crzygit/openwrt-x86-64
           username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          password: ${{ secrets.DOCKER_TOKEN }}
           buildargs: FIRMWARE=openwrt.tar.gz
-          tags: ${{ env.TAG }}
+          tags:
+            - ${{ env.TAG }}
