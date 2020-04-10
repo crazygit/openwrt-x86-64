@@ -24,10 +24,10 @@ jobs:
       - name: Publish to Registry
         uses: elgohr/Publish-Docker-Github-Action@master
         env:
-          FIRST_ARG: FIRMWARE=openwrt.tar.gz
+          FIRMWARE: openwrt.tar.gz
         with:
           name: crazygit/openwrt-x86-64
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
-          buildargs: FIRST_ARG
-          tags: ${{ env.TAG }}
+          buildargs: FIRMWARE
+          tags: "latest,${{ env.TAG }}"
