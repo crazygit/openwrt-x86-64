@@ -17,8 +17,8 @@ jobs:
       - name: Download Firmware
         run: |
           wget $FIRMWARE_URL -O openwrt.tar.gz
-          echo $pwd
-          ls
+          echo "$(pwd)"
+          echo "$(ls)"
       - name: Publish to Registry
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
@@ -27,3 +27,5 @@ jobs:
           password: ${{ secrets.DOCKER_TOKEN }}
           buildargs: FIRMWARE=openwrt.tar.gz
           tags: ${{ env.TAG }}
+      - name: SSH connection to Actions
+        uses: P3TERX/debugger-action@master
