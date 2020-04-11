@@ -127,18 +127,20 @@ $ docker run --rm crazygit/openwrt-x86-64 cat /etc/banner
 
 ## 镜像使用配置
 
-镜像的使用可以参考下面两篇文章的方式进行配置
+镜像的使用可以参考下面两篇文章的方式进行配置,两位都做了非常详细的描述。
 
 * [在Docker 中运行 OpenWrt 旁路网关](https://mlapp.cn/376.html)
 * [Docker上运行Lean大源码编译的OpenWRT](https://openwrt.club/93.html)
 
-这里主要描述下本人的配置方式
+这里主要记录下本人的配置方式
 
-在宿主机上通过`Docker`运行`OpenWrt`系统，使用它作为软路由
+首先说说我的使用场景:
 
-宿主机操作系统: `Ubuntu 18.04.4 LTS`
-宿主机IP: `192.168.2.125`
-分配给OpenWrt系统的IP: `192.168.2.126`
+我是在宿主机上通过`Docker`运行`OpenWrt`系统，使用它作为旁路由
+
+* 宿主机操作系统: `Ubuntu 18.04.4 LTS`
+* 宿主机IP: `192.168.2.125`
+* 分配给OpenWrt系统的IP: `192.168.2.126`
 
 1. 获取网卡名称, 我的网卡名称是`enp3s0`
     ```bash
@@ -215,7 +217,7 @@ $ docker run --rm crazygit/openwrt-x86-64 cat /etc/banner
 
 6. 进入容器，修改网络配置文件并重启网络
 
-    进入容器并修改`etc/config/network`
+    进入容器并修改`etc/config/network`文件
 
     ```bash
     $ docker exec -it openwrt /bin/sh
@@ -247,7 +249,9 @@ $ docker run --rm crazygit/openwrt-x86-64 cat /etc/banner
     ```bash
     $ /etc/init.d/network restart
     ```
-    如上配置后，通过宿主机没法直接访问给OpenWrt系统的网络，参考
+7. 宿主机网络修复(**目前不生效**)
+
+   如上配置后，通过宿主机没法直接访问OpenWrt系统的网络，参考
     [将OpenWRT作为宿主机的网关
 ](https://openwrt.club/93.html#scroll-6)
 
@@ -270,7 +274,10 @@ $ docker run --rm crazygit/openwrt-x86-64 cat /etc/banner
     echo "nameserver $openwrt_gateway" |sudo tee /etc/resolv.conf
     ```
 
-    使用局域网其他设备上的浏览器，打开OpenWrt系统
+8. 验收成果
+
+    如第7步所介绍的，我们暂时没有办法直接从宿主机访问OpenWrt，只有借助局域网其他设备上的浏览器，打开OpenWrt系统
+    
     <http://192.168.2.126>
 
     我使用的是官方固件，初始密码默认为空,其他固件的初始密码视具体的固件而定了
