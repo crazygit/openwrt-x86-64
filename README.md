@@ -140,6 +140,7 @@ $ docker run --rm crazygit/openwrt-x86-64 cat /etc/banner
 
 * 宿主机操作系统: `Ubuntu 18.04.4 LTS`
 * 宿主机IP: `192.168.2.125`
+* 硬路由IP: `192.168.2.1`
 * 分配给OpenWrt系统的IP: `192.168.2.126`
 
 1. 获取网卡名称, 我的网卡名称是`enp3s0`
