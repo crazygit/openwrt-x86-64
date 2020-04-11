@@ -1,5 +1,9 @@
 ![Build OpenWrt Docker x86-64 image](https://github.com/crazygit/openwrt-x86-64/workflows/Build%20OpenWrt%20Docker%20x86-64%20image/badge.svg?branch=master)
+
+
 # OpenWrt Docker镜像构建
+
+[toc]
 
 为了在Docker中运行OpenWrt系统，我们需要用到OpenWrt的docker镜像,网上有很多人分享已经制作好的镜像。但是，每个人都有自己不同的需求，自己学会制作镜像就显得特别重要了。
 
@@ -8,7 +12,7 @@
 
 ## 直接使用
 
-如果你只想下载并使用，不关心构建流程，那么你可以用下面的命令直接下载
+如果你只想下载并使用，不关心构建流程，那么你可以用下面的命令直接下载，并参考镜像使用配置部分了解如何使用镜像
 
 ```bash
 # 下载镜像
@@ -34,7 +38,7 @@ $ docker run --rm crazygit/openwrt-x86-64 cat /etc/banner
 
 这里以`x86-64`平台为例
 
-#### 首先获取获取固件的下载地址
+首先获取获取固件的下载地址
 
 1. 打开[官网](https://downloads.openwrt.org/)，选择当前最新的稳定版本`19.07.2`
 ![step1](screenshots/step1.png)
@@ -121,15 +125,161 @@ $ docker run --rm crazygit/openwrt-x86-64 cat /etc/banner
     -----------------------------------------------------
     ```
 
-### 使用镜像
+## 镜像使用配置
 
 镜像的使用可以参考下面两篇文章的方式进行配置
 
 * [在Docker 中运行 OpenWrt 旁路网关](https://mlapp.cn/376.html)
 * [Docker上运行Lean大源码编译的OpenWRT](https://openwrt.club/93.html)
 
+这里主要描述下本人的配置方式
 
-### 参考
+在宿主机上通过`Docker`运行`OpenWrt`系统，使用它作为软路由
+
+宿主机操作系统: `Ubuntu 18.04.4 LTS`
+宿主机IP: `192.168.2.125`
+分配给OpenWrt系统的IP: `192.168.2.126`
+
+1. 获取网卡名称, 我的网卡名称是`enp3s0`
+    ```bash
+    $ ifconfig
+    br-df8369127cee: flags=4099<UP,BROADCAST,MULTICAST>  mtu 1500
+            inet 172.21.0.1  netmask 255.255.0.0  broadcast 172.21.255.255
+            ether 02:42:12:cd:c6:2c  txqueuelen 0  (Ethernet)
+            RX packets 0  bytes 0 (0.0 B)
+            RX errors 0  dropped 0  overruns 0  frame 0
+            TX packets 0  bytes 0 (0.0 B)
+            TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+    docker0: flags=4099<UP,BROADCAST,MULTICAST>  mtu 1500
+            inet 172.17.0.1  netmask 255.255.0.0  broadcast 172.17.255.255
+            ether 02:42:18:57:96:e1  txqueuelen 0  (Ethernet)
+            RX packets 0  bytes 0 (0.0 B)
+            RX errors 0  dropped 0  overruns 0  frame 0
+            TX packets 0  bytes 0 (0.0 B)
+            TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+    enp3s0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+            inet 192.168.2.125  netmask 255.255.255.0  broadcast 192.168.2.255
+            inet6 fe80::2e56:dcff:fe3c:548a  prefixlen 64  scopeid 0x20<link>
+            ether 2c:56:dc:3c:54:8a  txqueuelen 1000  (Ethernet)
+            RX packets 2099  bytes 2435262 (2.4 MB)
+            RX errors 0  dropped 0  overruns 0  frame 0
+            TX packets 1149  bytes 104504 (104.5 KB)
+            TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+    lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536
+            inet 127.0.0.1  netmask 255.0.0.0
+            inet6 ::1  prefixlen 128  scopeid 0x10<host>
+            loop  txqueuelen 1000  (Local Loopback)
+            RX packets 110  bytes 9098 (9.0 KB)
+            RX errors 0  dropped 0  overruns 0  frame 0
+            TX packets 110  bytes 9098 (9.0 KB)
+            TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+    ```
+
+2. 开启宿主机网卡混杂模式
+
+    ```bash
+    # 网卡名称enp3s0用你自己上一步获取到的
+    $ sudo ip link set enp3s0 promisc on
+    ```
+
+3. 加载`pppoe`内核(可选操作，具体干什么的不知道，不过看到别的大神这么做了，自己也跟着做了)
+
+    ```bash
+    $ sudo modprobe pppoe
+    ```
+
+4. 为`docker`创建`macvlan`模式的虚拟网络
+
+    子网`--subnet`和网关`--gateway`，以及`parent=enp3s0`网卡名称根据实际情况做调整
+
+    ```bash
+    $ docker network create -d macvlan --subnet=192.168.2.0/24 --gateway=192.168.2.1 -o parent=enp3s0 -o macvlan_mode=bridge openwrt-LAN
+
+    # 查看创建的虚拟网络
+    $ docker network ls |grep openwrt-LAN
+    21dcddacc389        openwrt-LAN         macvlan             local
+    ```
+
+5. 启动容器
+
+    ```bash
+    # --network使用第4步创建的虚拟网络
+    $ docker run --restart always --name openwrt -d --network openwrt-LAN --privileged crazygit/openwrt-x86-64
+
+    # 查看启动的容器
+    $ docker ps -a
+    ```
+
+6. 进入容器，修改网络配置文件并重启网络
+
+    进入容器并修改`etc/config/network`
+
+    ```bash
+    $ docker exec -it openwrt /bin/sh
+    $ vi /etc/config/network
+    ```
+    编辑`lan`口的配置如下，有些参数默认的文件里可能没有，按照下面的格式添加上即可
+    ```
+    config interface 'lan'
+            option type 'bridge'
+            option ifname 'eth0'
+            option proto 'static'
+            option ipaddr '192.168.2.126'
+            option netmask '255.255.255.0'
+            option gateway '192.168.2.1'
+            option dns '192.168.2.1'
+            option broadcast '192.168.2.255'
+            option ip6assign '60'
+    ```
+    上面的参数根据自身的情况调整
+    * `proto`设置使用静态分配IP地址的方式`static`
+    * `ipaddr`为OpenWrt系统分配的静态IP，这里我分配的是`192.168.2.126`(注意: 这个IP地址不要与你本地网络已有的IP地址冲突)
+    * `netmask`为子网掩码`255.255.255.0`
+    * `gateway`为路由器(硬路由)的网关，通常就是你访问路由器的IP地址，这里我是`192.168.2.1`
+    * `dns`为`DNS`服务器的地址，可以是运营商的地址，比如`114.114.114.114`,这里我直接用的路由器的地址`192.168.2.1`
+    * `broadcast`为广播地址`192.168.2.255`
+
+    重启网络
+
+    ```bash
+    $ /etc/init.d/network restart
+    ```
+    如上配置后，通过宿主机没法直接访问给OpenWrt系统的网络，参考
+    [将OpenWRT作为宿主机的网关
+](https://openwrt.club/93.html#scroll-6)
+
+    里的方法，使用如下脚本修复网络，**但是不生效**(希望知道的大神不吝赐教)。不过使用局域网的其他设备可以正常访问OpenWrt系统
+
+    ```bash
+    #根据实际情况修改下面两个变量
+    # 网卡名称
+    card="enp3s0"
+    # OpenWrt系统的IP地址
+    openwrt_gateway="192.168.2.126"
+
+    sudo ip link add link $card vLAN type macvlan mode bridge
+    sudo ip addr add 192.168.2.253/24 brd + dev vLAN
+    sudo ip link set vLAN up
+    sudo ip route del default
+    sudo ip route add default via $openwrt_gateway dev vLAN
+
+    #设置宿主机的dns服务器为OpenWRT
+    echo "nameserver $openwrt_gateway" |sudo tee /etc/resolv.conf
+    ```
+
+    使用局域网其他设备上的浏览器，打开OpenWrt系统
+    <http://192.168.2.126>
+
+    我使用的是官方固件，初始密码默认为空,其他固件的初始密码视具体的固件而定了
+
+    ![openwet login](screenshots/openwrt_login.png)
+
+    剩下的就是openWrt系统的常规使用和配置，这里就不再详述了
+
+## 参考
 
 本文构建过程参考自:
 
@@ -140,4 +290,4 @@ $ docker run --rm crazygit/openwrt-x86-64 cat /etc/banner
 ```
 ADD https://downloads.openwrt.org/chaos_calmer/15.05/x86/generic/openwrt-15.05-x86-generic-Generic-rootfs.tar.gz /
 ```
-上面的语句是无效的，因为`ADD`指令只有在添加本地的`.tar.gz`文件时才会自动解压，添加`URL`时不会自动解压。建议使用本仓库的`Dockerfile`
+上面的语句是无效的，因为`ADD`指令只有在添加本地的`.tar.gz`文件时才会自动解压，添加`URL`时不会自动解压。建议使用本仓库的构建方式。
