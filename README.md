@@ -1,9 +1,8 @@
 ![Build OpenWrt Docker x86-64 image](https://github.com/crazygit/openwrt-x86-64/workflows/Build%20OpenWrt%20Docker%20x86-64%20image/badge.svg?branch=master)
 
+[toc]
 
 # OpenWrt Docker镜像构建
-
-[toc]
 
 为了在Docker中运行OpenWrt系统，我们需要用到OpenWrt的docker镜像,网上有很多人分享已经制作好的镜像。但是，每个人都有自己不同的需求，自己学会制作镜像就显得特别重要了。
 
@@ -29,6 +28,10 @@ $ docker run --rm crazygit/openwrt-x86-64 cat /etc/banner
  OpenWrt 19.07.2, r10947-65030d81f3
  -----------------------------------------------------
 ```
+
+如果觉得官网镜像功能太简单，也可以只用我编译的Lean'S大神的OpenWrt固件
+
+<https://github.com/crazygit/Actions-OpenWrt>
 
 ## 手动构建
 
@@ -132,7 +135,11 @@ $ docker run --rm crazygit/openwrt-x86-64 cat /etc/banner
 * [在Docker 中运行 OpenWrt 旁路网关](https://mlapp.cn/376.html)
 * [Docker上运行Lean大源码编译的OpenWRT](https://openwrt.club/93.html)
 
-这里主要描述下本人的配置方式
+同样，如果觉得手动配置比较麻烦，可以使用我整理好使用`docker-compose`的一键拉起服务文件
+
+<https://github.com/crazygit/family-media-center>
+
+这里主要描述下本人的手动配置方式
 
 在宿主机上通过`Docker`运行`OpenWrt`系统，使用它作为软路由
 
@@ -178,7 +185,7 @@ $ docker run --rm crazygit/openwrt-x86-64 cat /etc/banner
             TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
     ```
 
-2. 开启宿主机网卡混杂模式
+2. 开启宿主机网卡混杂模式(可选)
 
     ```bash
     # 网卡名称enp3s0用你自己上一步获取到的
@@ -196,7 +203,7 @@ $ docker run --rm crazygit/openwrt-x86-64 cat /etc/banner
     子网`--subnet`和网关`--gateway`，以及`parent=enp3s0`网卡名称根据实际情况做调整
 
     ```bash
-    $ docker network create -d macvlan --subnet=192.168.2.0/24 --gateway=192.168.2.1 -o parent=enp3s0 -o macvlan_mode=bridge openwrt-LAN
+    $ docker network create -d macvlan --subnet=192.168.2.0/24 --gateway=192.168.2.1 -o parent=enp3s0 openwrt-LAN
 
     # 查看创建的虚拟网络
     $ docker network ls |grep openwrt-LAN
